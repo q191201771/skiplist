@@ -22,8 +22,23 @@ type SkipList interface {
 	InsertForce(k, v interface{})  /// if exist,update it's `v`.
 	Erase(k interface{}) error     /// maybe `ErrKeyNotExist`,most of time you can ignore it.
 	Find(k interface{}) (v interface{}, exist bool)
+	Clear()
 	Size() int
+	Empty() bool
+	Min() (k, v interface{}) /// if Empty(),return nil,nil
+	Max() (k, v interface{}) /// if Empty(),return nil,nil
+
+	SkipListDebug
+	SkipListIterator
+}
+
+type SkipListDebug interface {
 	print()
+}
+
+type SkipListIterator interface {
+	Begin() Iterator /// minimum key,or nil if Empty()
+	End() Iterator   /// same as nil
 }
 
 type skiplist struct {
@@ -31,6 +46,7 @@ type skiplist struct {
 	curHeight  int
 	numOfNodes int
 	head       *node
+	tail       *node
 	cache      []*node
 	compare    Compare
 }
@@ -46,8 +62,8 @@ type node struct {
 	k, v   interface{}
 }
 
-func Default(c Compare) SkipList {
-	return New(c, kDefaultMaxHeight)
+func Default() SkipList {
+	return New(CommonCompare, kDefaultMaxHeight)
 }
 
 func New(c Compare, maxHeight int) SkipList {
@@ -82,6 +98,14 @@ func (sl *skiplist) Erase(k interface{}) error {
 		}
 	}
 
+	if node == sl.tail {
+		if sl.head == node.levels[0].prev {
+			sl.tail = nil
+		} else {
+			sl.tail = node.levels[0].prev
+		}
+	}
+
 	if node.height == sl.curHeight && node.height != 1 {
 		for i := node.height - 1; i > 0; i-- {
 			if sl.head.levels[i].next == nil {
@@ -106,6 +130,45 @@ func (sl *skiplist) Find(k interface{}) (v interface{}, exist bool) {
 
 func (sl *skiplist) Size() int {
 	return sl.numOfNodes
+}
+
+func (sl *skiplist) Clear() {
+	sl.curHeight = 1
+	sl.numOfNodes = 0
+	sl.head = createNode(sl.maxHeight, nil, nil)
+}
+
+func (sl *skiplist) Empty() bool {
+	return sl.numOfNodes == 0
+}
+
+func (sl *skiplist) Min() (k, v interface{}) {
+	if sl.numOfNodes == 0 {
+		return nil, nil
+	}
+	minNode := sl.head.levels[0].next
+	return minNode.k, minNode.v
+}
+
+func (sl *skiplist) Max() (k, v interface{}) {
+	if sl.tail == nil {
+		return nil, nil
+	}
+	return sl.tail.k, sl.tail.v
+}
+
+func (sl *skiplist) Begin() Iterator {
+	if sl.numOfNodes == 0 {
+		return nil
+	}
+	return &iterator{
+		sl: sl,
+		n:  sl.head.levels[0].next,
+	}
+}
+
+func (sl *skiplist) End() Iterator {
+	return nil
 }
 
 func createNode(height int, k, v interface{}) *node {
@@ -170,6 +233,10 @@ func (sl *skiplist) insert(k, v interface{}, force bool) error {
 			cacheNode.levels[i].next.levels[i].prev = newNode
 		}
 		cacheNode.levels[i].next = newNode
+	}
+
+	if newNode.levels[0].next == nil {
+		sl.tail = newNode
 	}
 
 	sl.numOfNodes++
