@@ -5,7 +5,7 @@ package skip_list
 /// after mod skiplist, an available iterator will trans to unavailable.
 
 type Iterator interface {
-	Next() Iterator /// next's key is bigger than me,or nil if not exist
+	Next() Iterator /// return's key is bigger than caller's,or nil if not exist
 	Key() interface{}
 	Value() interface{}
 }

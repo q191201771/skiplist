@@ -50,7 +50,7 @@ func TestInsert(t *testing.T) {
 	if sl.Size() != 1015 {
 		t.Fatal("!")
 	}
-	//sl.print()
+	//sl.debugPrint()
 }
 
 func TestInsertError(t *testing.T) {
@@ -121,7 +121,7 @@ func TestInsertForce(t *testing.T) {
 	if sl.Size() != 1002 {
 		t.Fatal("!")
 	}
-	//sl.print()
+	//sl.debugPrint()
 }
 
 func TestFind(t *testing.T) {

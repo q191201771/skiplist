@@ -18,9 +18,9 @@ var kChance = 0.5
 type Compare func(l, r interface{}) int
 
 type SkipList interface {
-	Insert(k, v interface{}) error /// maybe `ErrKeyAlreadyExist`.
-	InsertForce(k, v interface{})  /// if exist,update it's `v`.
-	Erase(k interface{}) error     /// maybe `ErrKeyNotExist`,most of time you can ignore it.
+	Insert(k, v interface{}) error /// nil | `ErrKeyAlreadyExist`.
+	InsertForce(k, v interface{})  /// if exist already,update its `v`.
+	Erase(k interface{}) error     /// nil | `ErrKeyNotExist`,most of scenario you can ignore it.
 	Find(k interface{}) (v interface{}, exist bool)
 	Clear()
 	Size() int
@@ -33,11 +33,11 @@ type SkipList interface {
 }
 
 type SkipListDebug interface {
-	print()
+	debugPrint()
 }
 
 type SkipListIterator interface {
-	Begin() Iterator /// minimum key,or nil if Empty()
+	Begin() Iterator /// minimum,or nil if Empty()
 	End() Iterator   /// same as nil
 }
 
@@ -243,7 +243,7 @@ func (sl *skiplist) insert(k, v interface{}, force bool) error {
 	return nil
 }
 
-func (sl *skiplist) print() {
+func (sl *skiplist) debugPrint() {
 	fmt.Println("-------------------")
 	for i := sl.curHeight - 1; i >= 0; i-- {
 		node := sl.head.levels[i].next
