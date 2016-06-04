@@ -2,7 +2,7 @@
 
 ### 接口
 
-```
+```golang
 func Default() SkipList
 func New(c Compare, maxHeight int) SkipList
 
