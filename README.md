@@ -43,3 +43,4 @@ type Iterator interface {
 ### TODO
 
 * vargrind
+* benchmark
